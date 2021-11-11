@@ -1,3 +1,1025 @@
-file:///B:/OneDrive/Documents/CSC%20133/Assignment1-Fall2020-V004.pdf
-file:///B:/OneDrive/Documents/CSC%20133/Assignment2-Fall2020-V003.pdf
-file:///B:/OneDrive/Documents/CSC%20133/Assignment3-Fall2020-V001.pdf
+CSc 133-3/4 Fall 2020– Object-Oriented Computer Graphics Programming 
+ASSIGNMENT #1: CLASS ASSOCIATIONS & INTERFACES
+Introduction 
+This semester we will study object-oriented graphics programming and design by developing a simple video 
+game we’ll call SkyMail 3000. In this game you will be controlling a helicopter on a flight path defined by 
+skyscraper helipads, delivering packages while trying to avoid collisions with fog, birds, and other helicopters 
+and keeping your helicopter fueled and flying. 
+The goal of this first assignment is to develop a good initial class hierarchy and control structure by designing 
+the program in UML and then implementing it in Codename One (CN1). This version will use keyboard input 
+commands to control and display the contents of a game world containing the set of objects in the game. In 
+future assignments many of the keyboard commands will be replaced by interactive GUI operations, and we 
+will add graphics, animation, and sound. For now, we will simply simulate the game in text mode with user 
+input coming from the keyboard and game output being lines of text on the screen. 
+Program Structure 
+Because you will be working on the same project all semester, it is extremely important to organize it correctly 
+from the beginning. Pay careful attention to the class structure described below and make sure your program 
+follows this structure accurately. The primary class in the program encapsulates the notion of a Game. A game 
+in turn contains several components, including (1) a GameWorld which holds a collection of game objects and 
+other state variables, and (2) a play()method to accept and execute user commands. Later, we will learn that 
+a component such as GameWorld that holds the program’s data is often called a model. 
+The top-level Game class also manages the flow of control in the game (such a class is therefore sometimes 
+called a controller). The controller enforces rules such as what actions a player may take and what happens as 
+a result. This class accepts input in the form of keyboard commands from the human player and invokes 
+appropriate methods in the game world to perform the requested commands – that is, to manipulate data in the 
+game model. 
+In this first version of the program the top-level Game class will also be responsible for displaying information 
+about the state of the game. In future assignments we will learn about a separate kind of component called a 
+view which will assume that responsibility. 
+When you create your CN1 project, you must name the main class AppMain and set the package to 
+org.csc133.a1 as we did with the first assignment. Then you should modify the start() method of the 
+AppMain class so that it would construct an instance of the Game class. The other methods in AppMain (i.e., 
+init(), stop(), destroy()) should not be altered or deleted. The Game class must extend from the build-in 
+Form class (which lives in com.codename1.ui package). 
+The Game constructor instantiates a GameWorld, calls a GameWorld method init() to set the initial state of 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+the game, and then starts the game by calling a Game method play(). The play()method then accepts 
+keyboard commands from the player and invokes appropriate methods in GameWorld to manipulate and 
+display the data and game state values in the game model. Since CN1 does not support getting keyboard input 
+from command prompt (i.e., the standard input stream, System.in, supported in Java is not available in CN1) 
+the commands will be entered via a text field added to the form (the Game class). Refer to “Appendix – CN1 
+Notes” for the code that accepts keyboard commands through the text field located on the form. 
+The following shows the pseudo-code implied by the above description. It is important for things that we will do 
+later that your program follows this organization: 
+Game World Objects 
+For now, assume that the game world size is fixed and covers 1024(width) x 768(height) area (although we are 
+going to change this later). The origin of the world (location (0,0)) is the lower left hand corner. The game world 
+contains a collection which aggregates objects of abstract type GameObject. There are two kinds of abstract 
+game objects called: fixed objects of type Fixed with fixed locations (which are fixed in place) and moveable 
+objects of type Movable with changeable locations (which can move or be moved about the world). For this 
+first version of the game there are two concrete types that fixed objects are instantiated from which are called: 
+SkyScraper and RefuelingBlimp; and there are two concrete types that moveable objects are instantiated 
+from which are called: Helicopter and Bird. Later we may add other kinds of game objects (both fixed kinds 
+and moveable kinds) as well. 
+The various game objects have attributes (fields) and behaviors (methods) as defined below. These definitions 
+are requirements which must be properly implemented in your program. 
+ All game objects have an integer attribute size. All game objects provide the ability for external code 
+to obtain their size. However, they do not provide the ability to have their size changed once it is 
+created. As will be specified in the later assignments, each type of game object has a different shape 
+which can be bounded by a square. The size attribute provides the length of this bounding square. All 
+SkyScrapers and all helicopters have the same size (chosen by you), assigned when they are created 
+public class GameWorld { 
+public void init(){ 
+//code here to create the 
+//initial game objects/setup 
+}
+// additional methods here to 
+// manipulate world objects and 
+// related game state data 
+}
+import com.codename1.ui.Form; 
+public class Game extends Form{ 
+private GameWorld gw; 
+public Game() { 
+gw = new GameWorld(); 
+gw.init(); 
+play(); 
+}
+private void play() { 
+// code here to accept and 
+// execute user commands that 
+// operate on the game world 
+//(refer to “Appendix - CN1 
+//Notes” for accepting 
+//keyboard commands via a text 
+//field located on the form) 
+}
+}
+class AppMain { 
+//other methods 
+public void start() { 
+if(current != null){ 
+current.show(); 
+return; 
+}
+new Game(); 
+}
+//other methods 
+}
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+(e.g, size of all SkyScrapers can be 10 and size of all helicopters can be 40). Sizes of the rest of the 
+game objects are chosen randomly when created, and constrained to a reasonable positive integer 
+value (e.g., between 10 to 50). For instance, size of one of the refueling blimp may be 15 while size of 
+refueling blimp can may be 20. 
+ All game objects have a location, defined by floating point (you can use float or double to 
+represent it) non-negative values X and Y which initially should be in the range 0.0 to 1024.0 and 0.0 
+to 768.0, respectively. The point (X,Y) is the center of the object. Hence, initial locations of all game 
+objects should always be set to values such that the objects’ centers are contained in the world. All 
+game objects provide the ability for external code to obtain their location. By default, game objects 
+provide the ability to have their location changed, unless it is explicitly stated that a certain type of 
+game object has a location which cannot be changed once it is created. Except SkyScrapers and 
+helicopters, initial locations of all the game objects should be assigned randomly when created.
+ All game objects have a color, defined by a int value (use static rgb() method of CN1’s built-in 
+ColorUtil class to generate colors). All objects of the same class have the same color (chosen by 
+you), assigned when the object is created (e.g, SkyScrapers could be blue, helicopters could be red, 
+refueling blimps can be green). All game objects provide the ability for external code to obtain their 
+color. By default, game objects provide the ability to have their color changed, unless it is explicitly 
+stated that a certain type of game object has a color which cannot be changed once it is created.
+ SkyScrapers are fixed game objects that have an attribute sequenceNumber. Each SkyScraper is a 
+numbered marker that acts as a waypoint on the flight path; following the flight path is accomplished 
+by moving over the top of SkyScrapers in sequential order. SkyScrapers are not allowed to change 
+color once they are created. All SkyScrapers should be assigned to locations chosen by you at the 
+time of creation. Later we will add the ability for helicopters to pick up and deliver mail as they pass 
+over a skyscraper. 
+ RefuelingBlimps are fixed game objects that have an attribute capacity (amount of fuel an refueling 
+blimp contains). The initial capacity of the refueling blimp is proportional to its size. If the player 
+helicopter is running low on fuel, it must go to an refueling blimp that is not empty before it runs out of 
+fuel; otherwise it cannot move.
+ All fixed game objects are not allowed to change location once they are created.
+ Moveable game objects have integer attributes heading and speed. Telling a moveable object to 
+move() causes the object to update its location based on its current heading and speed. The movable 
+game objects all move the same way and they move simultaneously according to their individual 
+speed and heading. Heading is specified by a compass angle in degrees: 0 means heading north 
+(upwards on the screen), 90 means heading east (rightward on the screen), etc. See below for details 
+on updating an movable object’s position when its move() method is invoked.
+ Some movable game objects are steerable, meaning that they implement an interface called 
+ISteerable that allows other objects to change their heading (direction of movement) after they have 
+been created. Note that the difference between steerable and moveable is that other objects can 
+request a change in the heading of steerable objects whereas other objects can only request that a 
+movable object update its own location according to its current speed and heading. 
+ Helicopters are moveable and steerable game objects with attributes stickAngle, maximumSpeed, 
+fuelLevel, fuelConsumptionRate, damageLevel, and lastSkyScraperReached. The stickAngle
+of a helicopter indicates how the control stick is turned in relation to the front of the helicopter. That is, 
+the stickAngle of a helicopter indicates the change the player would like to apply to the heading along 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+which the helicopter is moving (the stickAngle actually gets applied to the heading when the clock 
+ticks given that the helicopter has not run out of fuel or does not have the maximum damage). Since 
+helicopters are able to hover, as long as there is fuel remaining and the helicopter is not damaged, 
+changing the heading will rotate the helicopter even if the speed is zero. The steering mechanism in a 
+helicopter limits the rate at which the helicopter can turn. The stickAngle can only modify the heading 
+in units of, at most, 5 degrees per tick of the simulation. The stickAngle is limited to a maximum of 
+plus or minus 40 degrees. As the helicopter rotates, its course is adjusted until the helicopter is flying 
+along the desired heading. For example, a request to change the heading by 50 degrees, will only 
+change the heading by 40 degrees spread over 8 clock ticks. In future versions we may adjust the 
+flight mechanics somewhat to improve playability. Later we will add cargo capacity to our helicopter so 
+that it may deliver mail to each skyscraper. 
+ The maximumSpeed of a helicopter is the upper limit of its speed attribute; attempts to accelerate a 
+helicopter beyond its maximumSpeed are to be ignored (that is, a helicopter can never go faster than 
+its maximumSpeed). Note that different helicopters may have different maximumSpeed values, although 
+initially they all start out with zero speed value. 
+ The fuelLevel of a helicopter indicates how much fuel it has left; helicopters with no fuel would have 
+zero speed and cannot move. You should set this value to the same initial reasonable value for all 
+helicopters. 
+ The fuelConsumptionRate of a helicopter indicates how much fuel the helicopter would spend each 
+time the clock ticks. You should set this value to the same reasonable value for all helicopters. 
+ The damageLevel of a helicopter starts at zero and increases each time the helicopter collides with 
+another helicopter or a bird (see below). The program should define an upper limit on the damage a 
+helicopter can sustain. Damage level affects the performance of a helicopter as follows: a helicopter 
+with zero damage can accelerate all the way up to its maximumSpeed; helicopters with the maximum 
+amount of damage would have zero speed and thus, cannot move at all; and helicopters with damage 
+between zero and the maximum damage should be limited in speed to a corresponding percentage of 
+their speed range (for example, a helicopter with 50% of the maximum damage level can only achieve 
+50% of its maximum speed). When a helicopter incurs damage because it is involved in a collision 
+(see below), its speed is reduced (if necessary) so that this speed-limitation rule is enforced. 
+ The lastSkyScraperReached of a helicopter indicates the sequence number of the last SkyScraper 
+that the helicopter has reached in the increasing order. Initially, the player helicopter should be 
+positioned at the location of SkyScraper #1 (initially lastSkyScraperReached is assigned to 1) and 
+its heading and stickAngle should be set to zero, and speed should be set to an appropriate positive 
+(non-zero) value. 
+ Later we may add other kinds of steerable game objects to the game.
+ Birds are moveable (but not steerable) objects that fly over the flight path. They add (or subtract) small 
+random values (e.g., 5 degrees) to their heading while they move so as to not run in a straight line. If 
+the bird’s center hits a side of the world, it changes heading and does not move out of bounds. If a 
+bird flies directly over a helicopter it causes damage to the helicopter; the damage caused by a bird is 
+half the damage caused by colliding with another helicopter but otherwise affects the performance of 
+the helicopter in the same way as described above. Birds are not allowed to change color once they 
+are created. Speed of birds should be initialized to a reasonable random value (e.g., ranging between 
+5 and 10) at the time of instantiation. Heading of birds should be initialized to a random value (ranging 
+between 0 and 359) at the time of instantiation. 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+The preceding paragraphs imply several associations between classes: an inheritance hierarchy, interfaces
+such as for steerable objects, and aggregation associations between objects and where they are held. You are 
+to develop a UML diagram for the relationships, and then implement it in CN1. Appropriate use of 
+encapsulation, inheritance, aggregation, abstract classes, and interfaces are important grading criteria. Note 
+that an additional important criterion is that another programmer must not be able to misuse your classes, e.g., 
+if the object is specified to have a fixed color, another programmer should not be able to change the object’s 
+color after it is instantiated. 
+You must use a tool to draw your UML (e.g., Violet or any other UML drawing tool) and output your UML as a 
+pdf file (e.g., print your UML to a pdf file). Your UML must show all important associations between your 
+entities (and important built-in classes that your entities have associations with) and utilize correct graphical 
+notations. For your entities you must use three-box notation and show all the important fields and methods. 
+You must indicate the visibility modifiers of your fields and methods, but you are not required to show 
+parameters in methods and return types of the methods. 
+Game Play 
+When the game starts the player has three lives (chances to reach the last skyscraper). The game has a clock 
+which counts up starting from zero; in this first version of the game the objective is to have the player helicopter 
+complete the flight path (starting at the first SkyScraper and ending at the last SkyScraper) in the least amount 
+of time. Currently, there is only one helicopter (the player helicopter) in the game. Later we will add other nonplayer helicopters and the objective will change to incorporate the delivery of mail while competing with other 
+helicopters also trying to deliver mail. 
+The player uses keystroke commands to turn the helicopter’s control stick; this can cause the helicopter’s 
+heading to change (turning the control stick only effects the helicopter’s heading under certain conditions; see 
+above). The helicopter moves one unit at its current speed in the direction it is currently moving each time the 
+game clock “ticks” (see below). Even if the helicopter has a speed of zero, as long as it is undamaged and has 
+fuel, the stick will rotate the helicopter. 
+The helicopter starts out at the first skyscraper (#1). The player must move the helicopter so that it intersects 
+the skyscrapers in increasing numerical order. Each time the helicopter reaches the next higher-numbered 
+skyscraper, the helicopter is deemed to have successfully moved that far along the flight path and its 
+lastSkyScraperReached field is updated. Intersecting skyscrapers out of order (that is, reaching a skyscraper 
+whose number is more than one greater than the most recently reached skyscraper, or whose number is less 
+than or equal to the most recently reached skyscraper) has no effect on the game. The fuel level of the 
+helicopter continually goes down as the game continues (fuel level goes down even if the helicopter has zero 
+speed since the helicopter will continue to hover). If the helicopter’s fuel level reaches zero it can no longer 
+move. Thus the player must occasionally move the helicopter off the flight path to be refueled by (intersect 
+with) a refueling blimp. This increases the helicopter’s fuel level by the capacity of the refueling blimp. After the 
+helicopter intersects with a refueling blimp, that refueling blimp’s capacity is reduced to zero and a new 
+refueling blimp with randomly-specified size and location is added into the game. 
+Collisions with other helicopters or with birds cause damage to the helicopter; if the helicopter sustains too 
+much damage it can no longer move. If the helicopter can no longer move the game stops, the player “loses a 
+life”, and the game world is re-initialized (but the number of clock ticks is not set back to zero). When the player 
+loses all three lives the game ends and the program exits by printing the following text message in console: 
+“Game over, better luck next time!”. If the player helicopter reaches the last skyscraper, the game also ends 
+with the following message displayed on the console: “Game over, you win! Total time: #”, where # indicates 
+the number of clock ticks since the start of the game that it took the player helicopter to reach the last 
+skyscraper. In later versions of the game, different messages and information will be displayedin accordance 
+with the changing gameplay. The program tracks the following “game state” values: current clock time and 
+lives remaining. Note that these values are part of the model and therefore belong in the GameWorld class.
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+Commands 
+Once the game world has been created and initialized, the Game constructor is to call a method name play() 
+to actually begin the game. The play()method accepts single-character commands from the player via the 
+text field located on the form (the Game class) as indicated in the “Appendix – C1 Notes”. 
+Any undefined or illegal input should generate an appropriate error message on the console and ignore the 
+input. Single keystrokes invoke action -- the human hits “enter” after typing each command. The allowable 
+input commands and their meanings are defined below (note that commands are case sensitive): 
+ ‘a’ – tell the game world to accelerate (immediately increase the speed of) the player 
+helicopter by a small amount. Note that the effect of acceleration is to be limited Based on 
+damage level, fuel level, and maximum speed as described above.
+ ‘b’ – tell the game world to brake (immediately reduce the speed of) the player helicopter by a 
+small amount. Note that the minimum speed for a helicopter is zero.
+ ‘l’ (the letter “ell”) – tell the game world to change the stickAngle of the player helicopter by 5 
+degrees to the left (in the negative direction on the compass). Note that this changes the 
+angle of the helicopter’s control stick; it does not directly (immediately) affect the helicopter’s 
+heading. See the “tick” command, below.
+ ‘r’ – tell the game world to change the stickAngle of the player helicopter by 5 degrees to the 
+right (in the positive direction on the compass). As above, this changes the angle of the 
+helicopter’s control stick, not the helicopter’s heading.
+ ‘c’ – PRETEND that the player helicopter has collided with some other helicopter; tell the 
+game world that this collision has occurred. (For this version of the program we won’t actually 
+have any other helicopter in the simulation, but we need to provide for testing the effect of 
+such collisions.) Colliding with another helicopter increases the damage level of the player 
+helicopter and modifies the helicopter’s appearance. The simplest implementation of this 
+behavior will be to make the helicopter appear more red. Motivated students may choose to 
+implement this feature as a changing sprite. If the damage results in the player helicopter not 
+being able to move then the game stops (the player loses a life). 
+ ‘a number between 1-9’– PRETEND that the player helicopter has collided with the 
+SkyScraper number x (which must have a value between 1-9); tell the game world that this 
+collision has occurred. The effect of moving over a skyscraper is to check to see whether the 
+number x is exactly one greater than the skyscraper indicated by lastSkyScraperReached 
+field of the helicopter and if so to record in the helicopter the fact that the helicopter has now 
+reached the next sequential skyscraper.
+ ‘e’ – PRETEND that the player helicopter has collided with (intersected with) a refueling 
+blimp; tell the game world that this collision has occurred. The effect of colliding an refueling 
+blimp is to increase the helicopter’s fuel level by the capacity of the refueling blimp, reduce 
+the capacity of the refueling blimp to zero, fade the color of the refueling blimp (e.g., change it 
+to light green), and add a new refueling blimp with randomly-specified size and location into 
+the game. 
+ ‘g’ – PRETEND that a bird has flown over (collided with, gummed up) the player helicopter. 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+The effect of colliding with a bird is to increase the damage to the helicopter as described 
+above under the description of birds and, initially, fades the color of the helicopter (i.e., the 
+helicopter color becomes lighter red).
+ ‘t’ – tell the game world that the “game clock” has ticked. A clock tick in the game world has 
+the following effects: (1) if the player helicopter moves (e.g., did not run out of fuel or does not 
+have the maximum damage or zero speed), then the helicopter’s heading should be 
+incremented or decremented as detailed above in the discussion of the helicopter’s 
+stickAngle. (2) Birds also update their heading as indicated above. (3) all moveable objects 
+are told to update their positions according to their current heading and speed, and (4) the 
+helicopter’s fuel level is reduced by the amount indicated by its fuelConsumptionRate. (5) the 
+elapsed time “game clock” is incremented by one (the game clock for this assignment is 
+simply a variable which increments with each tick).
+ ‘d’ – generate a display by outputting lines of text on the console describing the current 
+game/player-helicopter state values. The display should include (1) the number of lives left, 
+(2) the current clock value (elapsed time), (3) the highest SkyScraper number the helicopter 
+has reached sequentially so far, (4) the helicopter’s current fuel level and (5) helicopter’s 
+current damage level. All output should be appropriately labeled in easily readable format.
+ ‘m’ – tell the game world to output a “map” showing the current world (see below).
+ ‘x’ – exit, by calling the method System.exit(0) to terminate the program. Your program 
+should confirm the user’s intent (see ‘y’ and ‘n’ commands below) to quit before actually 
+exiting.
+ ‘y’ – user has confirmed the exit by saying yes.
+ ‘n’ – user has not confirmed the exit by saying no.
+Some of commands above indicate that you PRETEND a collision happens. In later assignments we 
+will see how to actually detect on-screen collisions such as this; for now we are simply relying on the 
+user to tell the program via a command when collisions have occurred. Inputting a collision command 
+is deemed to be a statement that the collision occurred; it does not matter where objects involved in 
+the collision actually happen to be for this version of the game as long as they exist in the game. 
+The code to perform each command must be encapsulated in a separate method. When the Game 
+receives a command manipulates the GameWorld, the Game must invoke a method in the 
+GameWorld to perform the manipulation (in other words, it is not appropriate for the Game class to 
+directly manipulate objects in the GameWorld; it must do so by calling an appropriate GameWorld 
+method). The methods in GameWorld, might in turn call other methods that belong to other classes. 
+When the player enters any of the above commands, an appropriate message should be displayed in 
+console (e.g., after ‘b’ is entered, print to console something like “brakes are applied”). 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+Additional Details 
+The program you are to write is an example of what is called a discrete simulation. In such a program there are 
+two basic notions: the ability to change the simulation state, and the ability to advance simulation time. 
+Changing the state of the simulation has no effect, other than to change the specified values, until the 
+simulation time is advanced. For example, entering commands to change the helicopter’s stickAngle will not 
+actually take effect until you enter a “tick” command to advance the time. On the other hand, entering a map 
+command after changing the values will show the new values even before a tick is entered. You should verify 
+that your program operates like this.
+Method init() is responsible for creating the initial state of the world. This should include adding to the game 
+world at least the following: a minimum of four SkyScraper objects, positioned and sized as you choose and 
+numbered sequentially defining the flight path (you may add more than four initial SkyScrapers if you like - 
+maximum number of SkyScrapers you can add is nine); one Helicopter, initially positioned at the SkyScraper 
+#1 with initial heading, stickAngle, of zero, initial positive non-zero speed, and initial size as you choose; at 
+least two Bird objects, randomly positioned with a randomly-generated heading and a speed; and at least two 
+RefuelingBlimp objects with random location and with random sizes.
+All object initial attributes, including those whose values are not otherwise explicitly specified above, should be 
+assigned such that all aspects of the gameplay can be easily tested (for example, birds should not fly so fast 
+that it is impossible for them to ever cause damage to a helicopter).
+In this first version of the game, it is possible that some of the abstract classes might not include any abstract 
+methods (or some classes might have fields/methods). Later, we might add such class members to meet the 
+new requirements.
+It is a requirement to follow standard Java coding conventions:
+ class names always start with an uppercase letter, 
+ variable names always start with a lowercase letter, 
+ compound parts of compound names are capitalized (e.g., myExampleVariable), 
+ Java interface names should start with the letter “I” (e.g., ISteerable). 
+Also, all classes must be designed and implemented following the guidelines discussed in class, for now, 
+including:
+ All data fields must be private. 
+ Accessors / mutators must be provided, but only where the design requires them. 
+Moving objects need to determine their new location when their move() method is invoked, at each time tick. 
+The new location can be computed as follows: newLocation(x,y) = oldLocation(x,y) + (deltaX, 
+deltaY), where deltaX = cos(θ)*speed, deltaY = sin(θ)*speed, and where θ = 90 ˗ heading (90 
+minus the heading). We will go over the derivation of these calculations at some point in lecture for an arbitrary 
+amount of time; in this assignment we are assuming “time” is fixed at one unit per “tick”, so “elapsed time” is 1. 
+You can use methods of the built-in CN1 Math class (e.g., Math.cos(), Math.sin()) to implement the 
+above-listed calculations in move() method. Be aware that these methods expect the angles to be provided in 
+“radians” not “degrees”. You can use Math.toRadians() to convert degrees to radians. 
+ 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+For this assignment all output will be in text form on the console; no “graphical” output is required. The “map” 
+(generated by the ‘m’ command) will simply be a set of lines describing the objects currently in the world, 
+similar to the following:
+SkyScraper: loc=200.0,200.0 color=[0,0,255] size=10 seqNum=1 
+SkyScraper: loc=200.0,800.0 color=[0,0,255] size=10 seqNum=2 
+SkyScraper: loc=700.0,800.0 color=[0,0,255] size=10 seqNum=3 
+SkyScraper: loc=900.0,400.0 color=[0,0,255] size=10 seqNum=4 
+Helicopter: loc=180.2,450.3 color=[255,0,0] heading=355 speed=50 size=40 maxSpeed=50 stickAngle=5 fuelLevel=5 
+damageLevel=2 
+Bird: loc=70.3,70.7 color=[255,0,255] heading=45 speed=5 size=25 Bird: loc=950.6,950.3 color=[255,0,255] 
+heading=225 speed=10 size=20 
+RefuelingBlimp: loc=350.8,350.6 color=[0,255,0] size=15 capacity=15 RefuelingBlimp: loc=900.0,700.4 
+color=[0,255,0] size=20 capacity=20 
+Note that the above map describes the game shortly after it has started; the helicopter has moved northward 
+from its initial position at SkyScraper #1, the helicopter is traveling at its maximum speed, the player is trying to 
+apply a 5-degree right turn, and so forth. Note also that the appropriate mechanism for implementing this 
+output is to override the toString() method in each concrete game object class so that it returns a String 
+describing itself (see the “Appendix – CN1 Notes” below). Please see “Appendix – CN1 Notes” below for also 
+tips on how to print one digit after a decimal point in CN1. 
+For this assignment, the only required depiction of the world is the text output map as shown above. Later we 
+will learn how to draw a graphical depiction of the world. You are not required to use any particular data 
+structure to store the game world objects. However, your program must be able to handle changeable numbers 
+of objects at runtime; this means you can’t use a fixed-size array, and you can’t use individual variables. 
+Consider either the Java ArrayList or Vector class for implementing this storage. Note that Java Vectors 
+(and ArrayLists) hold elements of type “Object”, but you will need to be able to treat the Objects differently 
+depending on the type of object. You can use the instanceof operator to determine the type of a given 
+Object, but be sure to use it in a polymorphically-safe way. 
+For example, you can write a loop which runs through all the elements of a world Vector and processes each 
+“movable” object with code like: 
+for (int i=0; i<theWorldVector.size(); i++) { 
+if (theWorldVector.elementAt(i) instanceof Movable) { Movable mObj = 
+(Movable)theWorldVector.elementAt(i); mObj.move(); 
+} 
+} 
+I recommend the use of Java Generics if you are familiar with them. Time permitting, we will discuss them in 
+lecture. 
+You can utilize java.util.Random class (see the “Appendix – CN1 Notes” below) to generate random values 
+specified in the requirements (e.g., to generate initial random sizes and locations of objects).
+It is a requirement for all programs in this class that the source code contain documentation, in the form of 
+comments explaining what the program is doing, including comments describing the purpose and organization 
+of each class and comments outlining each of the main steps in the code. Points will be deducted for poorly or 
+incompletely documented programs. Use of JavaDoc-style comments is highly encouraged. We will discuss 
+the issue of commenting more in depth in lecture. 
+Deliverables 
+See the Canvas assignment for submission details. All submitted work must be strictly your own!
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+Appendix – CN1 Notes 
+Input Commands 
+In CN1, since System.in is not supported, we will use a text field located on the form (i.e. the Game 
+class) to enter keyboard commands. The play() method of Game will look like this (we will discuss 
+the details of the GUI and event-handling concepts used in the below code later in the semester): 
+import com.codename1.ui.events.ActionListener; 
+import com.codename1.ui.Label; 
+import com.codename1.ui.TextField; 
+import com.codename1.ui.events.ActionEvent; 
+import java.lang.String; 
+private void play() 
+{ 
+Label myLabel=new Label("Enter a Command:"); 
+this.addComponent(myLabel); 
+final TextField myTextField=new TextField(); 
+this.addComponent(myTextField); 
+this.show(); 
+myTextField.addActionListener(new ActionListener(){ 
+public void actionPerformed(ActionEvent evt) { 
+String sCommand=myTextField.getText().toString(); 
+myTextField.clear(); 
+switch (sCommand.charAt(0)){ 
+case 'x': 
+gw.exit(); 
+break; 
+// add code to handle rest of the commands 
+} 
+} 
+}); 
+} 
+Random Number Generation 
+The class used to create random numbers in CN1 is java.util.Random. This class contains several methods 
+including nextInt(), which returns a random integer from the entire range of integers, nextInt(int), which 
+returns a random number between zero (inclusive) and the specified integer parameter (exclusive), and 
+nextFloat(), which returns float value (between 0.0 and 1.0). For instance, if you like to generate a random 
+integer value between X and X+Y, you can call X+nextInt(Y). 
+Output Strings 
+The routine System.out.println() can be used to display text. It accepts a parameter of type String, which 
+can be concatenated from several strings using the “+” operator. If you include a variable which is not a String, 
+it will convert it to a String by invoking its toString() method. For example, the following statements print out 
+“The value of I is 3”: 
+int i = 3 ; 
+System.out.println ("The value of I is " + i); 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+Every CN1 class provides a toString() method inherited from Object. Sometimes the result is descriptive. 
+However, if the toString() method inherited from Object isn’t very descriptive, your own classes should 
+override toString() and provide their own String descriptions – including the toString() output provided by 
+the parent class if that class was also implemented by you. 
+For example, suppose there is a class Book, and a subclass of Book named ColoredBook with 
+attribute myColor of type int. An appropriate toString() method in ColoredBook might return a 
+description of a colored book as follows: 
+public String toString() { 
+String parentDesc = super.toString(); 
+String myDesc = "color: " + "[" + ColorUtil.red(myColor) + "," 
++ ColorUtil.green(myColor) + "," 
++ ColorUtil.blue(myColor) + "]"; 
+return parentDesc + myDesc ; 
+} 
+The above-mentioned static methods of the ColorUtilclass return the red, green, and blue components of a 
+given integer value that represents a color. 
+A program containing a ColoredBook called myBook could then display it as follows: 
+System.out.println ("myBook = " + myBook.toString()); 
+or simply: 
+System.out.println ("myBook = " + myBook); 
+Number Formatting 
+The System.out.format() and String.format() methods supported in Java are not available in CN1. Hence, in 
+order to display only one digit after the decimal point you can use Math.round() function: 
+double dVal = 100/3.0; 
+double rdVal = Math.round(dVal*10.0)/10.0; 
+System.out.println("original value: " + dVal); 
+System.out.println("rounded value: " + rdVal); 
+Above prints the following to the standard output stream: 
+original value: 33.333333333333336 
+rounded value: 33.3
+
+Assignment #2: Graphics, and GUIs 
+
+For this assignment you are to extend your game from Assignment #1 (A1) to incorporate several 
+design patterns, and a Graphical User Interface (GUI) with graphical game output. Most of the 
+code from A1 will be reused, although it will require some modification and reorganization. An 
+important goal for this assignment will be to reorganize your code so that it follows the ModelView-Controller (MVC) architecture. If you followed the structure specified in A1, you should 
+already have a “controller”: the Game class containing the play() method. The GameWorld class 
+becomes the data model, containing the collection of game objects and other game state 
+information. You are also required to add two classes acting as views: a score view which will be 
+graphical, and a map view which will also give us our first graphical output of the game. In A3 we 
+will replace this with an animated adaptation and sound. 
+Single-character commands entered via a text field in A1 will be replaced by GUI components 
+such as side menu items, buttons, and key bindings. Each such component will have an 
+associated command object, and the command objects will perform the same operations as 
+previously performed by the single-character commands. 
+The program must use appropriate interfaces and built-in classes for organizing the required 
+design patterns. The following design patterns are to be implemented in this assignment: 
+1. Command – to encapsulate the various commands the player can invoke, 
+2. Singleton – to ensure that only a single instance of player helicopter can exist. 
+3. Strategy – to control movement for additional (non-player) helicopters. 
+Model Organization 
+GameWorld is to be reorganized so that it has a GameObjectCollection. All game objects are to 
+be contained in this single collection. Any routine that needs to process the objects in the 
+collection must access the objects through the collection. The model contains the same game 
+state data as A1 (current clock time and lives remaining). 
+Views 
+A1 contained two functions to output game information: the ‘m’ key for outputting a “map” of the 
+game objects in the GameWorld, and the ‘d’ key for outputting current game/player- helicopter 
+state data (i.e., the number of lives left, the current clock value, last skyscraper number the 
+player’s helicopter has reached sequentially so far, the player helicopter’s current fuel level, and 
+player helicopter’s current damage level). Each of these two operations is to be implemented in 
+this assignment as a view of the GameWorld model. To do that, you will need to implement two 
+new classes: a MapView class containing code to output the map, and a GlassCockpit class 
+containing code to output the current game/player-helicopter state information. The 
+GlassCockpit class represents a view of the of the game state with a vintage style. 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+GlassCockpit Details 
+GlassCockpit, like all views, must extend the CN1 Container class. For each of the non-label 
+elements in the GlassCockpit, you must extend the CN1 component class to implement your 
+own components. Each of the numeric displays, e.g., fuel, clock, must employ classic 80s style 
+seven segment displays. To do this you will use an image for each digit and your component will 
+translate input values to display the appropriate digits as images. We will extend this idea in the 
+next project when we implement animation for several of our game objects. You may download a 
+complete set of digits and digits with dots from the Wikimedia commons at the following URL. 
+https://commons.wikimedia.org/wiki/Seven_segment_display. 
+These images have transparent digits so that you can set their color by drawing a rectangle 
+behind them. You will build up the GlassCockpit using containers and layouts and place your 
+component displays as you would any other CN1 control such as a button or textbox. Your 
+components must maintain the aspect ratio of the digits and cannot stretch then in either 
+direction unless it does so in both directions proportionally. This will require you to override the 
+CalcPreferredSize method. Details of this will be made clear in the video on implementing a 
+real time clock in CN1. 
+The image below gives some suggestion on what the GlassCockpit could look like. You are free 
+to change some of the colors and fonts and move things around and add a nice background 
+image. However, you must retain the label above control, you must use components, and you 
+must put these components in an appropriate layout, you must use seven segment displays for 
+the readouts and you must follow the other specific requirements discussed below. 
+In addition to the above changes not that the game clock displays real time in minutes, seconds, 
+and tenths of seconds. This is required. You are also required to display the tenth second in a 
+slightly darker color so that it is less distracting. It is ok, to display the decimal point in the same 
+color, as is shown above. This is because the above set of images offer versions of each digit 
+that display the dot, consequently, the dot is associated with the unit seconds digit. 
+Put some effort into thinking about how you are going to abstract and share code for the various 
+displays. There’s enough boiler-plate code that some kind of class hierarchy makes sense, but 
+you don’t want to go crazy overgeneralizing if you don’t need it for this project. 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+Display Requirements 
+The real time game clock is not a merely a view on game data, rather, it is a self-animating 
+component and provides elapsed real time information to the game world. Yes this breaks our 
+pure MVC pattern. In any case, GameClockComponent must therefore provide methods for 
+resetResetElapsedTime(), startElapsedTime(), stopElapsedTime, and getElapsedTime(). 
+The GameClockComponent will run at the full framerate of CN1 and is not dependent on the 
+UITimer that is responsible for updating the rest of the game. These methods are exposed to 
+GameWorld via an appropriate interface defined in GlassCockpit. In other words, if we change 
+the interface to the component, we should not have to change our gameworld. You do not 
+necessarily need to expose the full interface of GameClockComponent to GameWorld. 
+GlassCockpit should expose only the functions that GameWorld needs and in the language of 
+the domain of GameWorld. For example, if the game never needs the clock to restart from any 
+time other than time zero, then there is no need to separate reset and start as exposed to 
+GameWorld. You may still use game time to determine win or loss, as discussed below, but your 
+game state must also report real time. 
+The GameClockComponent must change the background color to red when it reaches ten 
+minutes of playing time. For the sake of playability, you are free to make this a changeable 
+parameter so that it can be easily adjusted for a different time in the future. You must still 
+maintain the darker color for the tenths digit. The fuel indicator must be four digits and can be 
+whatever color you choose. The damage must be two digits and must represent percent of total 
+damage. You do not have to represent damage internally as a two-digit integer, you may use 
+whatever is convenient, but the display must indicate a two-digit percentage. When damage is 
+below 50% you may display it in whatever color you choose, the display turns yellow when 
+damage is above 50% and it switches to red when damage is above 85%. Heading is whatever 
+color you choose but it must be three digits and display the compass heading in degrees. Lives 
+and last skyscraper reached must be single digit displays but may be any color you choose. 
+While you must implement the timer as a self-animated component, the other components in 
+GlassCockpit may also be self-animated controls if you wish. For these you do not have to 
+update them at full rate but can choose to return false in the animate() method on some 
+iterations to reduce repaint rate. Having the displays update at a slower or faster rate can add to 
+the playability and fun of a game. Real vintage controls may not have updated all at the same 
+rate. 
+If you choose to implement the remainder of the controls as self-animated components then you 
+have to make sure that your properly register each control within GlassCockpit and you have to 
+recognize that the updates are not necessarily synced with changes in the game state. If you 
+don’t choose to do this (they still must extend component) then you have to manage the 
+repainting of your components within GlassCockpit whenever you notify it that the game state 
+has changed. 
+GlassCockpit manages all of the components in its view including their construction and 
+initialization. Thus, if we were to change our minds completely about how we display the cockpit 
+information, the rest of the game should not have to be modified. 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+MapView 
+For this assignment, MapView will also display the contents of the game graphically in the 
+container in the middle of the game screen (in addition to displaying it in the text form on the 
+console). When the MapView update() is invoked, it should call repaint() on itself. As described 
+in the lecture, one way to implement this is to have MapView override paint(), which will be 
+invoked as a result of calling repaint(). It is then the duty of paint() to iterate through the game 
+objects invoking draw() in each object – thus redrawing all the objects in the world in the 
+container. Note that paint() must have access to the GameWorld. That means that the reference 
+to the GameWorld must be saved when MapView is constructed, or alternatively the update() 
+method must save it prior to calling repaint(). Note that the modified MapView class 
+communicates with the rest of the program exactly as it did previously (e.g., it is an observer of 
+GameWorld). 
+As indicated in A#1, each type of game object has a different shape which can be bounded by a 
+square. The size attribute provides the length of this bounding square. The different graphical 
+representation of each game object is as follows: Skyscrapers are filled squares with their 
+number printed in the center; refueling blimps are a filled ellipse to approximate a blimp’s outline; 
+the player helicopter is a filled circle with a line of length equal to the radius of the circle drawn 
+from the center in the direction of the helicopter’s current heading. Birds are unfilled circles with 
+a line drawn as with the helicopter to indicate their heading. Hence, the size attribute of a blimp 
+indicates the length of the ellipse along its major axis. The size of a skyscraper or bird indicates 
+the length of the of the rectangle or the diameter of the circle, and size of a helicopter indicates 
+the diameter of the circle. 
+Skyscrapers should include a text showing their number. When reached they should visually 
+change reflecting that they have been reached. Refueling blimps should include a text showing 
+their capacity. Use the Graphics method drawString() to draw the text on Skyscrapers and 
+refueling blimps. For now, the most appropriate place to put the responsibility for drawing each 
+shape is within each type of game object (that is, to use a polymorphic drawing capability). In 
+future versions we may treat this differently. The program should define a new interface named 
+IDrawable specifying a method draw(Graphics g, Point containerOrigin). GameObject
+class should implement this interface and each concrete game object class should then provide 
+code for drawing that particular object using the received Graphics object g (which belong to 
+MapView) and Point object containerOrigin, which is the component location (MapView’s origin 
+location which is located at its the upper left corner) relative to its parent container’s origin 
+(parent of MapView is the content pane of the Game form and origin of the parent is also located 
+at its upper left corner). Remember that calling getX() and getY() methods on MapView would 
+return the MapView component’s location relative to its parent container’s origin. 
+Each object’s draw() method draws the object in its current color and size, at its current location. 
+Recall that current location of the object is defined relative to the origin of the game world (which 
+corresponds to the origin of the MapView in A#2). Hence, do not forget to add MapView’s origin 
+location to the current location while drawing your game objects. 
+ 
+Also, recall that the location of each object is the position of the center of that object. Each 
+draw() method must take this definition into account when drawing an object. Remember that 
+the draw...() method of the Graphics class expects to be given the X,Y coordinates of the upper 
+left corner of the shape to be drawn. Thus, a draw() method would need to use the location and 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+size attributes of the object to determine where to draw the object so its center coincides with its 
+location (i.e., the X,Y coordinate of the upper left corner of a game object would be at 
+center_location.x – size/2, center_location.y – size/2 relative to the origin of the MapView, which is 
+the origin of the game world). 
+We will not directly implement the Observer pattern as we have only two, non-dynamic, 
+observers of our gameworld. As is commonly done, we will hardcode our simple observer pattern 
+to retain flexibility. To implement this, GameWorld should be thought of as observable, with two 
+observers– MapView and GlassCockpit. Rather than go to the trouble of holding a collection of 
+two observers via registration, we will follow the pattern of implementing update in each of these 
+views and require GameWorld to call these update methods when appropriate. 
+When the controller invokes a method in GameWorld that causes a change in the world (such as 
+a game object moving, or a new refueling blimp being added to the world) the GameWorld notifies 
+its observers that the world has changed. Each observer then automatically produces a new 
+output view of the data it is observing – the game world objects in the case of MapView, and a 
+description of the game/player-helicopter state values in the case of GlassCockpit. The 
+MapView output for this assignment displays both text output on the console showing all game 
+objects which exist in the world as well as their graphical representation on the map. 
+GlassCockpit, as described above, also presents a graphical display of the game/playerhelicopter state values. 
+Recall that there are multiple approaches which can be used to implement the Observer pattern. 
+You may not use the java.util Oberservable class. Since, we are only implementing the 
+pattern in a lightweight sense here since we don’t need a registration system. You must follow 
+this guidance and implement only the necessary aspects of the observer pattern manually. 
+The essence of this requirement is that the game world must update its views when the game 
+state changes. It is up to the views to manage what state that they need to update themselves. 
+GUI Operations 
+Game class extends Form (as in A1) representing the top-level container of the GUI. The form 
+should be divided into three areas: one for status information at the top of the display, one for 
+commands at the bottom of the display, and one for the map. 
+Note that since user input is via GUI components, flow of control will now be event-driven and 
+there is no longer any need to invoke the play() method – once the Game is constructed it simply 
+waits for user-generated input events. Note however that it is still a requirement to have a 
+AppMain class as described in A1. Hence, in this assignment, the play() method used in A1 
+which prompts for single- character commands and reads them from a text field on the form is to 
+be discarded. In its place, commands will be input through menu items, on-screen buttons and 
+key bindings, You should add a title bar with the name of the game to your form and we will use 
+a simple menu for some actions. However, note that games often take over the entire screen, we 
+have to strike a balance between writing a game and completing an exercise. 
+Each command will be invokable via a combination of these mechanisms. You are to create 
+command objects (see below) for each of the commands from A1 (except “d” and “m” which are 
+implemented as views in A2, and “y” and “n” which are replaced by an exit dialog box – see 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+below) and for new commands introduced in A2 (i.e., change strategies, sound, about, and help). 
+You are to attach the objects as commands to various combinations of invokers as shown in the 
+following table (a ‘+’ in a column indicates that the command in that row is to be able to be 
+invoked by the mechanism in the column header): 
+Command Key Binding Menu Button
+accelerate + +
+brake + +
+left turn + +
+right turn + +
+collide with nPH +
+collide with skyscraper +
+collide with e-blimp +
+collide with g-oony bird +
+exit + +
+change strategies +
+give about information +
+give help information +
+For north and center regions, you should have a GlassCockpit and a MapView object created, 
+respectively. GlassCockpit and MapView classes should extend from Container. MapView will 
+display the running game objects whereas you should add components to the GlassCockpit
+container to display the game state information as described above 
+For the south region you will add the play control buttons. They should have images that have 
+arrows point left and right for changing heading and up and down for accelerating and braking 
+respectively. You will place these buttons in a container with appropriate layout in the south 
+region of the game. 
+Each button is to have an appropriate command object attached to it, so that when a button gets 
+pushed it invokes the actionPerformed() method in the corresponding command object. This 
+is the command pattern’s execute() method that contains the code to perform the command. 
+Most commands execute exactly the same code as was implemented in A1. One exception is the 
+“collide with skyscraper” command. Previously this command consisted of a number (between 1-
+9) entered from the text field located on the form which we eliminate in A2. Now, this command is 
+to use the static method Dialog.show() to display a dialog box that allows the user to enter the 
+number on a text field located on the dialog box Note that if the user inputs an invalid value; your 
+program should handle this gracefully. 
+The other command which must operate slightly different in this assignment is the c command 
+that indicates that the player’s helicopter collided with NPH. In A1, this command just increased 
+the damage level of the player’s helicopter. Now, the command is to also add damage to one of 
+the NPH: the c command code should choose one NPH and increase that NPH’s damage as 
+well. To increase game fairness, you must alternate between NPHs when this command is 
+entered, but it is acceptable to use any algorithm that approximates this over time, for example, 
+choosing an NPH randomly. 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+The key binding input mechanism will use the CN1 key binding concept so that the command 
+keys invoke command objects corresponding to the code previously executed when the singlecharacter commands were entered. Note that using key bindings means that whenever a key is 
+pressed, the program will immediately invoke the corresponding action (without the user pressing 
+the Enter key). If you want, you may also use key bindings to map any of the other command 
+keys from A1, but only the ones listed here are required. The side menu will use a CN1 defined 
+side menu; see the CN1 videos for details on this using the CN1 Toolbar class. 
+Your GUI will contain a side menu that contains entries for About, Help, and Exit. The About 
+menu item is to display a dialog box using CN1’sbuilt-in Dialog class that gives your name, the 
+course name, and a version number. You will lose points if your instructor’s name appears 
+anywhere in your code or your running project! 
+The Exit menu item should invoke the x command. Note that in A2 the x command should 
+prompt graphically for confirmation and then exit the program using a dialog box. Invoking Help 
+displays a dialog box listing the key commands for the game. Selecting a side menu item that 
+performs a game command (e.g., “Accelerate” menu item) should invoke the same code, when 
+the button of the same name had been pushed (e.g., “Accelerate” button) and/or its related key 
+has been hit (e.g., “a” key). Recall that there is a requirement that commands be implemented 
+using the Command design pattern. This means that there must be only one of each type of 
+command object, which in turn means that the menu items, key bindings, and buttons must share 
+their command objects. (We could enforce the rule using the Singleton design pattern, but that is 
+not a requirement in A2; just don’t create more than one of any given type of command object). 
+Although we cover most of the GUI building details in the lectures, there will most likely be some 
+details that you will need to look up using the CN1 documentation (i.e., CN1 JavaDocs and 
+developer guide). It will become increasingly important that you learn to use these resources. 
+Non-Player Helicopters (NPHs) 
+The game object hierarchy will be the same as in A1 except that you will add a new kind of 
+movable object called NonPlayerHelicopter, which extends Helicopter. The game 
+initialization code should create and add to the game world a minimum of three instances of 
+NonPlayerHelicopter. Each NPH is to have an initial location near the first skyscraper, but not 
+exactly at the first skyscraper; instead, each NPH should be at least several helicopter lengths 
+away from the first skyscraper. You should adjust this distance, the number of NPHs, NPH speed 
+and damage, described below, to facilitate game play 
+When an NPH collides with the player’s helicopter, the player’s helicopter sustains damage just 
+as described in A1 – including that if the helicopter sustains so much damage that it can no 
+longer move the player loses a life, and the world is reinitialized. NPHs also sustain damage 
+when they collide. Consider how much damage they can sustain to facilitate game play. 
+NPHs will be controlled by separate pieces of code called strategies which can be altered using a 
+new Change Strategies command; this is described under Strategy Pattern, below. Having NPHs 
+in this version of the game introduces an additional case for ending the game such that if a NPH 
+reaches the last skyscraper before the player does, the game will end with the following message 
+displayed on the console: “Game over, a non-player helicopter wins!”. 
+ 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+Animation Control 
+The Game class will include a timer in this assignment. You should use the UITimer, a built-in 
+CN1 class, to drive the animation. In this context, animation means the movement of movable 
+objects, in the next assignment we will animate the birds and helicopters independently of object 
+movement. Game should also implement Runnable which is a standard Java interface. Each tick 
+generated by the timer invokes run() method which in turn invokes GameWorld’s tick()
+method from the previous assignment. This animates all moveable objects. 
+There are some changes in the way the Tick method works for this assignment. In order for the 
+animation to look smooth, the timer itself will have to tick at a fairly fast rate (about every 20 
+msec or so). In order for each movable object to know how far it should move, each timer tick 
+should pass an “elapsed time” value to the move() method. The move() method should use this 
+elapsed time value when it computes a new location. For simplicity, you can simply pass the 
+value of the timer event rate (e.g., 20 msec), rather than computing a true elapsed time. 
+However, it is a requirement that each move() computes movement based on the value of the 
+elapsed time parameter passed in, not by assuming a hard-coded time value within the move()
+method itself. You should experiment to determine appropriate movement values (e.g., in A#1, 
+we have specified the initial speed of the bird to be a random value between 5 and 10, you 
+may need to adjust this range to make your birds have reasonable speed which is not to too fast 
+or too slow). In addition, be aware that methods of the built-in CN1 Math class that you will use in 
+move() method (e.g., Math.cos(), Math.sin()) expects the angles to be provided in radians 
+not degrees. You can use Math.toRadians()to convert degrees to radians. Likewise, the built-in 
+MathUtil.atan() method that you might have used in the strategy classes also produces an 
+angle in radians. You can use Math.toDegrees()to convert degrees to radians. 
+Remember that a UITimer starts as soon as its schedule() method is called. To stop a 
+UITimercall its cancel()method. To re-start it call the schedule()method again. 
+Command Design Pattern 
+The approach you must use for implementing command classes is to have each command 
+extend the CN1 built-in Command class (which implements the ActionListener interface). Code 
+to perform the command operation then goes in the command’s actionPerformed() method. 
+Hence, actionPerformed() method of each command class that performs an operation invoked 
+by a single-character command in A1, should call the appropriate method in the GameWorld that 
+you have implemented in A1 when related single-character command is entered from the text 
+field (e.g., accelerate command’s actionPerformed() would call accelerate() method in 
+GameWorld). Hence, most command objects need to have the GameWorld as its target since they 
+need to access the methods defined in this class. You could implement the specification of a 
+command’s target either by passing the target (reference to GameWorld) to the command 
+constructor, or by including a “setTarget()” method in the command. 
+The Button class can contain command objects; Button has a setCommand() method which 
+injects a command object into the button. Command automatically a listener when added to a 
+Button via setCommand() and it is not necessary to also call addActionListener(). The 
+specified Command is automatically invoked when the button is pressed, so if you use the CN1 
+facilities correctly then this particular observer/observable relationship is taken care of 
+automatically. 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+The Game constructor should create a single instance of each command object, e.g., Brake, 
+Accelerate, and insert the command objects into the command holders such as buttons, side 
+menu items, title bar area items. Use the appropriate method for each object: setCommand() for 
+buttons, addCommandToSideMenu() for side menu items, and addCommandToRightBar() for title 
+bar area items. You should also bind these command objects to the keys using the 
+addKeyListener() method of Form. You must call super(“command_name”) in the constructors 
+of command objects by providing appropriate command names. These command names will be 
+used to override the labels of buttons and/or to provide the labels of side menu items or title bar 
+area item(s). 
+Note that commands can be invoked using multiple mechanisms, e.g., from a keystroke and from 
+a button; it is a requirement that only one command object be implemented for each command 
+and that the same command object be invoked from each different command holder. As a result, 
+it is important to make sure that nothing in any command object contains knowledge of how, e.g., 
+through which mechanism, the command was invoked. 
+Strategy Design Pattern 
+NPHs move around the world according to their current strategy; this strategy is used to 
+determine the stick-angle and speed and it can be changed on the fly, i.e. while the program is 
+running. You must implement at least two different NPH movement strategies: the first strategy 
+causes the NPH to move directly toward the next skyscraper and the second strategy causes the 
+NPH to update its heading every time it is told to move so that the heading points toward the 
+location of the player’s helicopter; in other words, its strategy is to play “Attack” by trying to 
+collide into the player’s helicopter. You may also implement additional strategies if you like, 
+although this is not required; for example, you might have a strategy where an NPH simply 
+moves in circles, or a strategy where it moves back-and-forth between two skyscrapers. 
+The program must use the Strategy design pattern to define the strategy for each NPH. You 
+must use IStrategy interface rather than an abstract strategy super class. You should add two 
+methods called setStrategy() and invokeStrategy() and a field for saving the current 
+strategy to the NPH class. When an NPH is created it should be assigned a strategy chosen from 
+the available strategies. It is a requirement that NPHs may not all have the same initial strategy; 
+other than that you may assign initial strategies however you choose. Like all game objects, 
+NPHs should include a toString() method; the NPH toString()should return a string which 
+includes the NPH’s information provided for a player helicopter plus an identification of that 
+NPH’s current strategy. 
+When the switch strategy command is invoked, the game should cause all NPHs to switch to a 
+different movement strategy. Switching strategies is to be done by invoking the NPH’s 
+setStrategy() method. You may choose the algorithm that determines the new NPH strategy, 
+as long as every NPH acquires a new strategy each time the “switch strategy” command is 
+invoked. Additionally, you should arrange that as a side effect of switching strategies, each NPH 
+gets the next “last skyscraper reached” value (otherwise, NPHs will never move beyond 
+Skyscraper #2 since we have no command analogous to “collide with skyscraper” which applies 
+to NPHs). Also, you should arrange so that NPHs never run out of fuel (e.g., NPHs do not need 
+to collide with fuel, if the NPH’s fuel level is getting low, you should set it to a reasonable value). 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+Game Modes 
+In order for us to support the flow of control changes with dialog boxes, we are going to add an 
+additional capability to the game. The game is to have two modes: “play” and “pause”. The 
+normal game play with animation as implemented above is “play” mode. In “pause” mode, 
+animation stops – the game objects don’t move and the clock stops. It is not necessary to add a 
+pause button or key command for this lab. You only need pause the game when a dialog box 
+would otherwise prevent normal gameplay. 
+Commands should be enabled only when their functionality is appropriate. For example, 
+commands that involve playing the game should be disabled while in pause mode. Note that 
+disabling a command should disable it for all invokers (buttons, keys, and menu items). Note also 
+that a disabled button or menu item should still be visible; it just cannot be enabled. This is 
+indicated by changing the appearance of the button or menu item. To disable a button or a menu 
+item added by addComponentToSideMenu()use the setEnabled() method of the button. To 
+disable a menu item added by addCommandToSideMenu() use the setEnabled() method of 
+Command. To disable a key, use removeKeyListener() method of Form; remember to re-add 
+the key listener when the command is enabled. You can set disabled style of a button using 
+getDisabledStyle().set...() methods on the Button. 
+Additional Notes 
+1. It is a requirement that the program contain only a single instance of player helicopter. 
+This requirement must be enforced via the Singleton design pattern. You must 
+BorderLayout as the layout manager of your form and use appropriate layouts to meet 
+the requirements elsewhere. 
+2. You can change the size of your buttons/labels using setPadding() method of Style
+class. Each You can also use setPadding() on left and right control containers to start 
+adding buttons at positions which are certain pixels below their upper borders. In A2, you 
+must assign the size of your game world by querying the size of your MapView container 
+(instead of assigning your width and height to 1024x768 as in A1, assign them to width 
+and height of MapView) using getWidth() and getHeight() method of Component as 
+discussed in the video lectures. 
+3. Note that all game data manipulation by a command is accomplished by the command 
+object invoking appropriate methods in the GameWorld (the model). Note also that every 
+change to the GameWorld will invoke both the MapView and GlassCockpit observers – 
+and hence generate the output formerly associated with the “m” and “d” commands. This 
+means you do not need the “d” or “m” commands; the output formerly produced by those 
+commands is now generated by the observer/observable process. 
+4. Since almost all commands change the GameWorld (i.e., all command but exit, about, and 
+help), they produce updated views as side effects. For instance, since the ‘tick’ command 
+causes opponents to move, every ‘tick’ will result in a new map view being output 
+(because each tick changes the model). Note however that it is not the responsibility of 
+the ‘tick’ command code to produce this output; it is a side effect of the 
+observable/observer pattern. You should verify that your program correctly produces 
+updated views automatically whenever it should. 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+5. You may find the following formula useful while implementing the NPH strategies: 
+(image from a tutorial at http://www.invasivecode.com/)
+Here, (x0,y0) is the current location of the NPH, (x1,y1) is where it wants to go (target), 
+then B is the ideal compass angle (90 – ideal_heading) for the NPH so it can go towards 
+its target. Based on this information NPH should change its stick angle accordingly in 
+order to approach this ideal heading. To calculate arc tan you can use atan() method of 
+CN1 MathUtil class which generates angle in “radians”. If you need, you can use 
+MathUtil.toDegrees() to convert radians to degrees. 
+6. Please make sure that you add your MapView object directly to the center of the form. 
+Adding an additional Container object to the center and then adding a MapView object 
+onto it would cause incorrect results when a default layout is used for this center 
+container (e.g., you cannot see any of the game objects being drawn in the center of the 
+form). 
+7. To draw a filled circle with radius r at (x,y)use fillArc(x, y, 2*r, 2*r, 0,360). 
+8. The origin of the game world (which corresponds to the origin of the MapView for now) is 
+considered to be in its lower left corner. Hence, the Y coordinate of the game world 
+grows upward (Y values increase upward). However, origin of the MapView container is 
+at its upper left corner and Y coordinate of the MapView grows downward. So when a 
+game object moves north (e.g., it’s heading is 0 and hence, its Y values is increasing) in 
+the game world, they would move up in the game world. However, due to the coordinate 
+systems mismatch mentioned above, heading up in the game world will result in moving 
+down on the MapView (screen). Hence your game will be displayed as upside down on 
+the screen. This also means that when helicopters turn left they will go west in game 
+world, but they will go east on the MapView (and turning right means going west on the 
+MapView). In addition, triangles (e.g. skyscrapers and birds) will be drawn upside down 
+in MapView. Leave it like this we will fix it in the next assignment. 
+9. The simple shape representations for game objects will produce some slightly weird 
+visual effects in MapView. For example, squares or triangles will always be aligned with 
+the X/Y axes even if the object being represented is moving at an angle relative to the 
+axes. This is acceptable for now; we will see how to fix it in the next assignment. 
+10. You may adjust the size of game objects for playability if you wish; just don’t make them 
+so large (or small) that the game becomes unwieldy. 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+11. Boundaries of the game world are equal to dimensions of MapView. Hence, birds should 
+consider the width and the height of MapView when they move, not to be out of 
+boundaries. 
+12. You should tweak the parameters of your program for playability after you get the 
+animation working. Things that impact playability include object sizes and speeds, etc. 
+Your game is expected to operate in a reasonably-playable manner. 
+13. As before, you may not use a “GUI Builder” for this assignment. 
+14. All functionality from the previous assignment must be retained unless it is explicitly 
+changed or deleted by the requirements for this assignment.
+
+
+Assignment #3: Collision Detection and Sound 
+
+
+For this assignment you are to extend your game from Assignment #2 (A2) to support additional 
+features including collision detection and sound. 
+Collision Detection and Response 
+After invoking move()for all movable objects, your Tick method must determine if there are any collisions 
+between objects, and if so to perform the appropriate “collision response”. You must handle collision 
+detection/response by having GameObject class implement a new interface called “ICollider” which 
+declares two methods: 
+1. boolean collidesWith(GameObject otherObject)
+2. void handleCollision(GameObject otherObject)
+These are intended for performing collision detection and response, respectively. In the previous 
+assignment, collisions were caused by pressing one of the “pretend collision buttons” (i.e., “Collide With 
+NPH”, “Collide With Base”, “Collide With Bird”, “Collide with Refueling blimp”) and the objects involved in 
+the collision were chosen arbitrarily. Now, the type of collision will be detected automatically during 
+collision detection, so the pretend collision buttons are no longer needed and should be removed. Collision 
+detection will require objects to check to see if they have collided with other objects, so the actual collisions 
+will no longer be arbitrary, but will correspond to actual collisions in the game world. There are more hints 
+regarding collision detection in the notes below.
+Collision response (that is, the specific action taken by an object when it collides with another object) will 
+be similar as before. Hence, handleCollision() method of a game object should call the appropriate 
+collision handling method in GameWorld from the previous assignment. Collisions also generate a sound 
+(see below) and thus, collision handling methods in GameWorld should be updated accordingly. 
+In addition to the player Helicopter, NPHs can also collide with other NPHs, skyscrapers, birds, and 
+refueling blimps. The effects of these collisions on an NPH would be the same as the effects caused by 
+these collisions on the player Helicopter (i.e., collision with other NPH would increase damage level and 
+fade color of both NPHs, collision with base would increase the lastSkyScreaperReached value of the NPH 
+given that the base number is one more than the current lastSkyScreaperReached value, collision with a 
+bird would increase the damage level of the NPH, collision with an refueling blimp would increase NPH’s 
+energy level, reduce capacity of the refueling blimp to zero, fade the color of the refueling blimp, and add a 
+new refueling blimp). 
+Finally, since we now automatically detect collisions, we do not need to (and thus, we should not) assign 
+the next lastSkyScreaperReached value to NPHs each time “Change Strategies” button is hit. This value of 
+the NPH will now be updated as a result of collisions with the bases. In addition, although we still assume 
+that NPHs never run out of energy, collision between a NPH and an refueling blimp would increase the 
+energy level of the NPH. 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+Sound 
+You may add as many sounds into your game as you wish. However, you must implement particular, 
+clearly different sounds for at least the following situations: 
+1. when Helicopters collides, e.g., a player Helicopter-NPH or NPH-NPH collision happens (such as 
+a crash sound), 
+2. when a Helicopter (NPH/player Helicopter) collides with an refueling blimp (such as an electric 
+charge sound), 
+3. any collision which results in the player Helicopter losing a life (such as an explosion or dying 
+sound), 
+4. some sort of appropriate background sound that loops continuously during animation. 
+Sounds should only be played if the “Sound” attribute is “On”. Note that except for the “background” 
+sound, sounds are played as a result of executing a collision. Hence, you must play these sounds in 
+collision methods in GameWorld. 
+You may use any sounds you like, as long as I can show the game to the Dean and your mother (in other 
+words, they are not disgusting or obscene). Short, unique sounds tend to improve game playability by 
+avoiding too much confusing sound overlap. Do not use copyrighted sounds. You may search the web to 
+find these non-copyrighted sounds (e.g., www.findsounds.com). 
+You must copy the sound files directly under the src directory of your project for CN1 to locate them. You 
+should add Sound and BGSound classes to your project to add a capability for playing regular and 
+looping (e.g., background) sounds, respectively, as discussed in the lecture notes. These classes 
+encapsulate given sound files by making use of InputStream, MediaManager, and Media build-in 
+CN1 classes. In addition to these built-in classes, BGSound also utilizes Runnable build-in CN1 
+interface. You should create a single sound object in GameWorld for each audio file and when you need 
+to play the same sound file, you should use this single instance (e.g., all Helicopter and refueling blimp 
+collisions should use the same sound object). 
+Copyright 2020, All Rights Reserved, Not for Distribution, For CSUS-CSC133-03/04 Fall 2020 Only 
+Additional Notes 
+1. All requirements of the previous labs that can be followed for this lab are still applicable. E.g., 
+you may not use the 
+2. Because the sound can be turned on and off by the user (using the menu), and also turns on/off 
+automatically with the pause/play button, you will need to test the various combinations. For 
+example, turning off sound, then pressing pause, then pressing play, should result in the sound 
+not coming back on. There are several sequences to test. 
+3. When two objects collide handling the collision should be done only once. For instance, when 
+two helicopters collide (i.e., helicopter1 and helicopter2) the helicopters damage level should be 
+increased only once, not twice. In the two nested loops of collision detection, 
+helicopter1.collidesWith(helicopter2) and helicopter2.collidesWith(helicopter1) will both 
+return true. However, if we handle the collision with helicopter1.handleCollision(helicopter2) 
+we should not handle it again by calling helicopter2.handleCollision(helicopter1). This 
+problem is complicated by the fact that in most cases the same collision will be detected 
+repeatedly as one object passes through the other object. Another complication is that more 
+than two objects can collide simultaneously. One straight-forward way of solving this 
+complicated problem, is to have each collidable object (that may involve in such a problem) keep 
+a list of the objects that it is already colliding with. An object can then skip the collision handling 
+for objects it is already colliding with. Of course, you’ll also have to remove objects from the list 
+when they are no longer colliding. 
+Implementation of this solution would require you to have a Vector (or Arraylist) for each 
+collidable object (i.e., all game objects in Skymail3k game) which we will call as “collision 
+vector”. When collidable object obj1 collides with obj2, right after handling the collision, you need 
+to add obj2 to collision vector of obj1. If obj2 is also a collidable object, you also need to add 
+obj1 to collision vector of obj2. Each time you check for possible collisions (in each clock tick, 
+after the moving the objects) you need to update the collision vectors. If the obj1 and obj2 are no 
+longer colliding, you need to remove them from each other’s collision vectors. You can use 
+remove() method of Vector to remove an object from a collision vector. If two objects are 
+still colliding (passes through each other), you should not add them again to the collision 
+vectors. You can use contains() method of Vector to check if the object is already in the 
+collision vector or not. The contains() method is also useful for deciding whether to handle 
+collision or not. For instance, if the collision vector of obj2 already contains obj1 (or collision 
+vector of obj1 already contains obj2), it means that collision between obj1 and obj2 is already 
+handled and should not be handled again.
